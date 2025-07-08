@@ -1,0 +1,53 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can read/write their own user document
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Family members - users can read/write family members they created
+    match /familyMembers/{memberId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Health records - users can read/write health records they created
+    match /healthRecords/{recordId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Patients - doctors can read/write patients they created
+    match /patients/{patientId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.doctorId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.doctorId;
+      
+      // Patient reports subcollection
+      match /reports/{reportId} {
+        allow read, write: if request.auth != null && request.auth.uid == get(/databases/$(database)/documents/patients/$(patientId)).data.doctorId;
+      }
+    }
+    
+    // Prescriptions - doctors can read/write prescriptions they created, patients can read prescriptions for their mobile number
+    match /prescriptions/{prescriptionId} {
+      allow read, write: if request.auth != null && 
+        (request.auth.uid == resource.data.doctorId || 
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.mobile == resource.data.patientInfo.mobile));
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.doctorId;
+    }
+    
+    // Appointments - can be read by doctors or created by anyone
+    match /appointments/{appointmentId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.doctorId;
+      allow create: if request.auth != null;
+    }
+    
+    // Allow reading appointments without doctorId (for general appointment booking)
+    match /appointments/{appointmentId} {
+      allow read: if request.auth != null && !exists(resource.data.doctorId);
+    }
+  }
+}
