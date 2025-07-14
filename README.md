@@ -33,7 +33,7 @@ MediIndia is a cross-platform healthcare management platform with intelligent do
   - Summary generation for prescriptions & notes
 
 - **Voice Transcription**:
-  - In-browser mic capture → real-time summary via Bolt.new or Whisper
+  - In-browser mic capture → real-time summary 
 
 ---
 
@@ -46,8 +46,8 @@ MediIndia is a cross-platform healthcare management platform with intelligent do
 | Database         | PostgreSQL (via Supabase)                         |
 | AI Layer         | LLM Node (`gpt-4.1-mini`)                |
 | Auth             | Supabase Auth with RLS                            |
-| Realtime Sync    | Supabase Subscriptions (optional)                 |
-| File Storage     | Supabase Storage (PDFs, reports, ID proofs)       |
+| Realtime Sync    | Supabase Subscriptions                 |
+| File Storage     | Supabase Storage       |
 
 ---
 
